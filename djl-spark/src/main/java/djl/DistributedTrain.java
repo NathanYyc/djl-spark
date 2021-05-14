@@ -85,6 +85,7 @@ public class DistributedTrain {
      * @throws MalformedModelException
      */
     public static void distributedTrain(Trainer trainer, JavaRDD<Pair<byte[], byte[]>> data, int numEpoch,int partitionNum, Broadcast<Map<String, byte[]>> broadcastParameters) throws InterruptedException, IOException, MalformedModelException {
+        //由于lambda表达式特性需要声明为 AtomiInteger
         AtomicInteger parameterNum = new AtomicInteger();
         trainer.getModel().getBlock().getParameters().forEach(
                 (parameterPair) -> {
@@ -94,15 +95,18 @@ public class DistributedTrain {
                 }
         );
 
+        //开启HeartBeat服务器
         Object lock = new Object();
         String addr = InetAddress.getLocalHost().getHostAddress();
+        HeartBeatServer heartBeatServer = new HeartBeatServer(1888, serverSet.size());
         new Thread(new Runnable() {
             @Override
             public void run() {
-                new HeartBeatServer(1888).start(lock);
+                heartBeatServer.start(lock);
             }
         }).start();
 
+        //在HeartBeat服务器开启之后开启各个ParameterServer
         synchronized (lock) {
             lock.wait();
 
@@ -126,6 +130,7 @@ public class DistributedTrain {
                         @Override
                         public void run() {
                             ParameterServerHeartBeatClient parameterServerHeartBeatClient = new ParameterServerHeartBeatClient(addr,1888);
+                            parameterServerHeartBeatClient.start();
                         }
                     }).start();
                     return null;
@@ -133,6 +138,8 @@ public class DistributedTrain {
             });
         }
 
+        //等待所有ParameterServer进行了连接
+        while(!heartBeatServer.isAllConnected());
 
         System.out.println("Start training!");
         List<byte[]> result = data.mapPartitions(new FlatMapFunction() {

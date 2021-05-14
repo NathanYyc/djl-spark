@@ -22,11 +22,12 @@ public class HeartBeatServer {
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private ChannelFuture channelFuture;
-
+    private int psNumber;
     private AtomicInteger connectionCount;
 
-    public HeartBeatServer(int port){
+    public HeartBeatServer(int port, int psNumber){
         this.port = port;
+        this.psNumber = psNumber;
         connectionCount = new AtomicInteger(0);
     }
 
@@ -58,5 +59,7 @@ public class HeartBeatServer {
         }
     }
 
-
+    public boolean isAllConnected(){
+        return connectionCount.get() >= psNumber;
+    }
 }
