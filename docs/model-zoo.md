@@ -8,7 +8,7 @@ A [ZooModel](https://javadoc.io/doc/ai.djl/api/latest/ai/djl/repository/zoo/ZooM
 - Versioned: the model version scheme allows developers to continuously update their model without causing a backward compatibility issue.
 - Ready to use out of box: the model contains predefined pre-process and post-process functionality, which
 allows the user to run inference with a plain java object. 
-- Can be published anywhere: models can be published to an S3 bucket, a web server, or a local folder.
+- Can be published anywhere: models can be published to an S3 bucket, a web parameterServer, or a local folder.
 
 ## [Basic model zoo](../model-zoo/README.md)
 

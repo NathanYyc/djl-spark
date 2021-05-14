@@ -16,7 +16,7 @@ public class Grads {
     public static volatile NDArray[] grads = null;
     private static int count = 0;
 
-    private static CyclicBarrier cyclicBarrier;
+    private static CyclicBarrier[] cyclicBarrier;
     private static NDManager ndManager;
     private static ReentrantLock[] locks;
     private static CountDownLatch[] latches;
@@ -32,11 +32,12 @@ public class Grads {
         Grads.nodeNum = nodeNum;
         Grads.paramNum = paramNum;
 
-        cyclicBarrier = new CyclicBarrier(nodeNum);
+        cyclicBarrier = new CyclicBarrier[paramNum];
         grads = new NDArray[paramNum];
         latches = new CountDownLatch[nodeNum];
         for(int i = 0; i< nodeNum; i++){
             latches[i] = new CountDownLatch(nodeNum);
+            cyclicBarrier[i] = new CyclicBarrier(nodeNum);
         }
 
         locks = new ReentrantLock[paramNum];
@@ -134,7 +135,7 @@ public class Grads {
         byte[] result;
         result = grads[index].encode();
 
-        cyclicBarrier.await();
+        cyclicBarrier[index].await();
 
         reset(index);
         return ByteBuffer.wrap(result);

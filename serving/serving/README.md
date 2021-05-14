@@ -21,7 +21,7 @@ The javadocs output is built in the `build/doc/javadoc` folder.
 
 
 ## Installation
-You can pull the server from the central Maven repository by including the following dependency:
+You can pull the parameterServer from the central Maven repository by including the following dependency:
 
 ```xml
 <dependency>
@@ -34,9 +34,9 @@ You can pull the server from the central Maven repository by including the follo
 
 
 
-## Run model server
+## Run model parameterServer
 
-Use the following command to start model server locally:
+Use the following command to start model parameterServer locally:
 
 ```sh
 cd serving/serving
@@ -48,7 +48,7 @@ cd serving/serving
 ..\..\..\gradlew run
 ```
 
-The model server will be listening on port 8080.
+The model parameterServer will be listening on port 8080.
 
 You can also load a model for serving on start up:
 
@@ -92,7 +92,7 @@ curl -X POST http://127.0.0.1:8080/predictions/mlp -F "data=@../examples/src/tes
 
 ### installing plug-ins
 
-The model server looks for plug-ins during startup in the plugin folder and register this plug-ins.
+The model parameterServer looks for plug-ins during startup in the plugin folder and register this plug-ins.
 
 The default plug-in folder is 
 
@@ -100,16 +100,16 @@ The default plug-in folder is
 {work-dir}/plugins
 ```
 
-The plug-in folder can be configured with the 'plugin-folder' parameter in the server-config file.
+The plug-in folder can be configured with the 'plugin-folder' parameter in the parameterServer-config file.
 
 example:
-running model server with gradle using a specific config-file:
+running model parameterServer with gradle using a specific config-file:
 
 ```sh
 ./gradlew run -Dai.djl.conf=~/modelserver-config.properties
 ```
 
- example config.properties file for djl-server
+ example config.properties file for djl-parameterServer
  
 ```sh
 inference_address=http://127.0.0.1:8081

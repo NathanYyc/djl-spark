@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -65,7 +66,7 @@ public class ParameterStore {
     }
 
     /** Updates all the mirrored parameters. */
-    public void updateAllParameters() {
+    public void updateAllParameters(){
         for (Map.Entry<String, ParameterData> entry : parameterMap.entrySet()) {
             String parameterId = entry.getKey();
             ParameterData data = entry.getValue();

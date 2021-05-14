@@ -47,6 +47,7 @@ import ai.djl.translate.TranslateException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -54,11 +55,11 @@ public final class TrainSeq2Seq {
 
     private TrainSeq2Seq() {}
 
-    public static void main(String[] args) throws IOException, TranslateException {
+    public static void main(String[] args) throws IOException, TranslateException, BrokenBarrierException, InterruptedException {
         TrainSeq2Seq.runExample(args);
     }
 
-    public static TrainingResult runExample(String[] args) throws IOException, TranslateException {
+    public static TrainingResult runExample(String[] args) throws IOException, TranslateException, BrokenBarrierException, InterruptedException {
         Arguments arguments = new Arguments().parseArgs(args);
         if (arguments == null) {
             return null;

@@ -15,6 +15,7 @@ package ai.djl.training;
 
 import ai.djl.ndarray.NDArray;
 import java.util.Arrays;
+import java.util.concurrent.BrokenBarrierException;
 
 /** An interface for a key-value store to store parameters, and their corresponding gradients. */
 public interface ParameterServer extends AutoCloseable {
@@ -33,7 +34,7 @@ public interface ParameterServer extends AutoCloseable {
      * @param parameterId the key to identify the parameter
      * @param params the parameter NDArrays in different devices to be updated.
      */
-    default void update(String parameterId, NDArray[] params) {
+    default void update(String parameterId, NDArray[] params){
         NDArray[] grads = Arrays.stream(params).map(NDArray::getGradient).toArray(NDArray[]::new);
         update(parameterId, grads, params);
         Arrays.stream(grads).forEach(NDArray::close);

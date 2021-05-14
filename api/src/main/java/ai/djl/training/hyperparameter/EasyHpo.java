@@ -27,6 +27,8 @@ import ai.djl.training.hyperparameter.param.HpSet;
 import ai.djl.translate.TranslateException;
 import ai.djl.util.Pair;
 import java.io.IOException;
+import java.util.concurrent.BrokenBarrierException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

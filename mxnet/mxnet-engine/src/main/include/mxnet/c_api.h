@@ -292,14 +292,14 @@ MXNET_DLL int MXSetProcessProfilerConfig(int num_params, const char* const* keys
 MXNET_DLL int MXSetProfilerConfig(int num_params, const char* const* keys, const char* const* vals);
 
 /*!
- * \brief Set up state of profiler for either worker or server process
+ * \brief Set up state of profiler for either worker or parameterServer process
  * \param state indicate the working state of profiler,
  *  profiler not running when state == 0,
  *  profiler running when state == 1
  * \param profile_process an int,
  * when 0 command is for worker/current process,
- * when 1 command is for server process
- * \param kvstoreHandle handle to kvstore, needed for server process profiling
+ * when 1 command is for parameterServer process
+ * \param kvstoreHandle handle to kvstore, needed for parameterServer process profiling
  * \return 0 when success, -1 when failure happens.
  */
 MXNET_DLL int MXSetProcessProfilerState(int state, int profile_process,
@@ -319,7 +319,7 @@ MXNET_DLL int MXSetProfilerState(int state);
  * \param finished true if stat output should stop after this point
  * \param profile_process an int,
  * when 0 command is for worker/current process,
- * when 1 command is for server process
+ * when 1 command is for parameterServer process
  * \param kvstoreHandle handle to kvstore
  * \return 0 when success, -1 when failure happens.
  */
@@ -360,7 +360,7 @@ MXNET_DLL int MXAggregateProfileStatsPrintEx(const char **out_str, int reset, in
 /*!
  * \brief Pause profiler tuning collection
  * \param paused If nonzero, profiling pauses. Otherwise, profiling resumes/continues
- * \param profile_process integer which denotes whether to process worker or server process
+ * \param profile_process integer which denotes whether to process worker or parameterServer process
  * \param kvstoreHandle handle to kvstore
  * \return 0 when success, -1 when failure happens.
  * \note pausing and resuming is global and not recursive
@@ -3022,7 +3022,7 @@ MXNET_DLL int MXKVStoreIsWorkerNode(int *ret);
 
 
 /**
- * \brief return whether or not this process is a server node.
+ * \brief return whether or not this process is a parameterServer node.
  * \param ret 1 for yes, 0 for no
  * \return 0 when success, -1 when failure happens
  */
@@ -3055,7 +3055,7 @@ MXNET_DLL int MXKVStoreSetBarrierBeforeExit(KVStoreHandle handle,
                                             const int barrier_before_exit);
 
 /**
- * \brief the prototype of a server controller
+ * \brief the prototype of a parameterServer controller
  * \param head the head of the command
  * \param body the body of the command
  * \param controller_handle helper handle for implementing controller
@@ -3065,9 +3065,9 @@ typedef void (MXKVStoreServerController)(int head,
                                          void *controller_handle);
 
 /**
- * \brief Run as server (or scheduler)
+ * \brief Run as parameterServer (or scheduler)
  * \param handle handle to the KVStore
- * \param controller the user-defined server controller
+ * \param controller the user-defined parameterServer controller
  * \param controller_handle helper handle for implementing controller
  * \return 0 when success, -1 when failure happens
  */
@@ -3076,7 +3076,7 @@ MXNET_DLL int MXKVStoreRunServer(KVStoreHandle handle,
                                  void *controller_handle);
 
 /**
- * \brief Send a command to all server nodes
+ * \brief Send a command to all parameterServer nodes
  * \param handle handle to the KVStore
  * \param cmd_id the head of the command
  * \param cmd_body the body of the command

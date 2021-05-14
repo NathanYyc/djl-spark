@@ -10,13 +10,10 @@ allprojects {
     version = "${djl_version}" + (isRelease ? "" : "-SNAPSHOT")
 
     repositories {
-        maven {
-            url "https://mlrepo.djl.ai/maven/"
-        }
+        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+        maven{ url 'http://maven.aliyun.com/nexus/content/repositories/jcenter'}
+        mavenCentral()
         jcenter()
-        maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots/'
-        }
     }
 
     apply plugin: 'idea'

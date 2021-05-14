@@ -21,7 +21,7 @@ The javadocs output is built in the `build/doc/javadoc` folder.
 
 
 ## Installation
-You can pull the server from the central Maven repository by including the following dependency:
+You can pull the parameterServer from the central Maven repository by including the following dependency:
 
 ```xml
 <dependency>
@@ -32,9 +32,9 @@ You can pull the server from the central Maven repository by including the follo
 </dependency>
 ```
 
-## Run model server
+## Run model parameterServer
 
-Use the following command to start model server locally:
+Use the following command to start model parameterServer locally:
 
 ```sh
 cd serving/central
@@ -46,7 +46,7 @@ cd serving/central
 ..\..\gradlew run
 ```
 
-The DJLCentral server will be listening on port 8080.
+The DJLCentral parameterServer will be listening on port 8080.
 
 open your browser an type in url 
 

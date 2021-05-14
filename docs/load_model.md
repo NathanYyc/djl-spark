@@ -117,7 +117,7 @@ an [archive file](#current-supported-archive-formats).
 Current supported URL scheme:
 
 - file:// load a model from local directory or archive file
-- http(s):// load a model from an archive file from web server  
+- http(s):// load a model from an archive file from web parameterServer  
 - jar:// load a model from an archive file in the class path
 
 ```java

@@ -31,7 +31,7 @@ public class Run {
 
     public static Arguments argu;
 
-    public static final int PARTITION_NUM = 5;
+    public static int PARTITION_NUM = 1;
 
     public static void main(String[] args) throws IOException, TranslateException {
         Run.runExample(args);
@@ -82,9 +82,11 @@ public class Run {
                 trainer.initialize(inputShape);
 
                 SparkSession spark = SparkSession.builder().master("local[5]").getOrCreate();
+                PARTITION_NUM = spark.sparkContext().getExecutorMemoryStatus().size();
+                System.out.println(spark.sparkContext().getExecutorMemoryStatus());
 
                 //EasyTrain.fit(trainer, argu.getEpoch(), trainingSet, validateSet);
-                DistributedTrain.fit(trainer, 5, trainingSet, validateSet, spark, PARTITION_NUM);
+                DistributedTrain.fit(trainer, 5, trainingSet, validateSet, spark);
 
                 return trainer.getTrainingResult();
             } catch (InterruptedException | MalformedModelException e) {

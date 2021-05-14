@@ -16,9 +16,11 @@ import ai.djl.training.listener.TrainingListener;
 import ai.djl.translate.TranslateException;
 import ai.djl.util.Pair;
 import ai.djl.util.Preconditions;
-import djl.server.Server;
+import djl.Util.Dispatcher;
+import djl.server.HeartBeatServer;
+import djl.server.ParameterServer;
+import djl.server.ParameterServerHeartBeatClient;
 import djl.training.DistributedTrainer;
-import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -26,6 +28,7 @@ import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.SparkSession;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.util.Iterator;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -33,27 +36,54 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
+import scala.Tuple2;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class DistributedTrain {
 
     private final static int PORT = 1888;
 
+    private static Set<String> nodeSet;
+
+    private static Set<String> serverSet;
+
+    private static int nodeNum;
+
     private DistributedTrain() {
     }
 
-    public static void fit(Trainer trainer, int numEpoch, Dataset trainingDataset, Dataset validateDataset, SparkSession spark, int partitionNum) throws IOException, TranslateException, InterruptedException, MalformedModelException {
+    public static void fit(Trainer trainer, int numEpoch, Dataset trainingDataset, Dataset validateDataset, SparkSession spark) throws IOException, TranslateException, InterruptedException, MalformedModelException {
         JavaSparkContext javaSparkContext = JavaSparkContext.fromSparkContext(spark.sparkContext());
+
+        Map<String, Tuple2<Object, Object>> map = scala.collection.JavaConverters.mapAsJavaMap(spark.sparkContext().getExecutorMemoryStatus());
+        nodeNum = map.size();
+        nodeSet = new HashSet<>();
+        serverSet = new HashSet<>();
+        for(String str: map.keySet()){
+            nodeSet.add(str.substring(0, str.indexOf(':')));
+        }
+
+        Dispatcher.initial(serverSet);
 
         JavaRDD<Pair<byte[], byte[]>> data = parallelizeDataset(trainer, trainingDataset, javaSparkContext);
         Broadcast<Map<String, byte[]>> broadcastParameters = javaSparkContext.broadcast(encodeParameters(trainer.getModel().getBlock().getParameters()));
-        distributedTrain(trainer, data, numEpoch, partitionNum, broadcastParameters);
+        distributedTrain(trainer, data, numEpoch, nodeNum, broadcastParameters);
 
         evaluateDataset(trainer, validateDataset);
     }
 
+    /**
+     * Train the model on spark
+     * @param trainer The trainer of current model
+     * @param data The {@code JavaRDD} of the dataset
+     * @param numEpoch Number of epoch
+     * @param partitionNum Number of partition
+     * @param broadcastParameters Broadcasted parameters
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws MalformedModelException
+     */
     public static void distributedTrain(Trainer trainer, JavaRDD<Pair<byte[], byte[]>> data, int numEpoch,int partitionNum, Broadcast<Map<String, byte[]>> broadcastParameters) throws InterruptedException, IOException, MalformedModelException {
         AtomicInteger parameterNum = new AtomicInteger();
         trainer.getModel().getBlock().getParameters().forEach(
@@ -64,75 +94,113 @@ public class DistributedTrain {
                 }
         );
 
-        ReentrantLock serverStartLock = new ReentrantLock();
-        Thread serverThread = new Thread(new Runnable() {
+        Object lock = new Object();
+        String addr = InetAddress.getLocalHost().getHostAddress();
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                Server server = new Server(PORT);
-                server.start(partitionNum, parameterNum.get(), serverStartLock, trainer);
+                new HeartBeatServer(1888).start(lock);
             }
-        });
-        serverThread.setName("serverThread");
-        serverThread.start();
+        }).start();
 
-        synchronized (serverStartLock) {
-            serverStartLock.wait();
-            System.out.println("Start training!");
-            List<byte[]> result = data.mapPartitions(new FlatMapFunction() {
+        synchronized (lock) {
+            lock.wait();
 
+            data.mapPartitions(new FlatMapFunction<Iterator<Pair<byte[], byte[]>>, Object>() {
                 @Override
-                public Iterator call(Object o) throws Exception {
-                    Block block = Run.getBlock();
-
-                    ParameterList parameterList = block.getParameters();
-                    for(int i = 0; i < parameterList.size(); i++){
-                        parameterList.get(i).getValue().setId(String.valueOf(i+1));
+                public Iterator<Object> call(Iterator<Pair<byte[], byte[]>> pairIterator) throws Exception {
+                    String localAddr = InetAddress.getLocalHost().getHostAddress();
+                    if (serverSet.contains(localAddr)) {
+                        Thread serverThread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ParameterServer parameterServer = new ParameterServer(PORT);
+                                parameterServer.start(partitionNum, parameterNum.get());
+                            }
+                        });
+                        serverThread.setName("serverThread");
+                        serverThread.start();
                     }
-                    Model distributedModel = Model.newInstance("distributedModel");
 
-                    distributedModel.setBlock(block);
-
-                    DistributedTrainer distributedTrainer = new DistributedTrainer(distributedModel, Run.setupTrainingConfig(null), "0.0.0.0", PORT);
-                    distributedTrainer.initialize(Run.getShape());
-                    distributedTrainer.setMetrics(new Metrics());
-
-                    Iterator<Pair<byte[], byte[]>> dataList = (Iterator<Pair<byte[], byte[]>>) o;
-
-                    Pair<byte[], byte[]> dataLabelPair = dataList.next();
-                    NDList data = NDList.decode(distributedTrainer.getManager(), dataLabelPair.getKey());
-                    NDList label = NDList.decode(distributedTrainer.getManager(), dataLabelPair.getValue());
-
-                    int partitionLabel = Integer.parseInt(data.get(0).getName());
-                    for (int i = 0; i < numEpoch; i++) {
-                        try(GradientCollector gradientCollector = distributedTrainer.newGradientCollector()){
-                            NDList pred = distributedTrainer.forward(data, label);
-                            NDArray loss = distributedTrainer.getLoss().evaluate(label, pred);
-                            gradientCollector.backward(loss);
-                            distributedTrainer.step();
-
-                            System.out.println("finished epoch " + String.valueOf(i+1));
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ParameterServerHeartBeatClient parameterServerHeartBeatClient = new ParameterServerHeartBeatClient(addr,1888);
                         }
-                    }
-
-
-
-                    List<byte[]> resultParameters = new LinkedList<>();
-                    for(int i = 0 ; i < parameterList.size(); i++){
-                        if(i % partitionNum == partitionLabel){
-                            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                            DataOutputStream dos = new DataOutputStream(bos);
-                            dos.write(i);
-                            parameterList.get(i).getValue().save(dos);
-
-                            resultParameters.add(bos.toByteArray());
-                        }
-                    }
-
-                    distributedModel.close();
-                    distributedTrainer.close();
-                    return resultParameters.iterator();
+                    }).start();
+                    return null;
                 }
-            }, true).collect();
+            });
+        }
+
+
+        System.out.println("Start training!");
+        List<byte[]> result = data.mapPartitions(new FlatMapFunction() {
+            @Override
+            public Iterator call(Object o) throws Exception {
+                String addr = InetAddress.getLocalHost().getHostAddress();
+                if(serverSet.contains(addr)){
+                    ReentrantLock serverStartLock = new ReentrantLock();
+
+                    Thread serverThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ParameterServer parameterServer = new ParameterServer(PORT);
+                            parameterServer.start(partitionNum, parameterNum.get());
+                        }
+                    });
+                    serverThread.setName("serverThread");
+                    serverThread.start();
+                }
+
+
+                Block block = Run.getBlock();
+
+                ParameterList parameterList = block.getParameters();
+                for(int i = 0; i < parameterList.size(); i++){
+                    parameterList.get(i).getValue().setId(String.valueOf(i+1));
+                }
+                Model distributedModel = Model.newInstance("distributedModel");
+
+                distributedModel.setBlock(block);
+                DistributedTrainer distributedTrainer = new DistributedTrainer(distributedModel, Run.setupTrainingConfig(null), "0.0.0.0", PORT);
+                distributedTrainer.initialize(Run.getShape());
+                distributedTrainer.setMetrics(new Metrics());
+
+                Iterator<Pair<byte[], byte[]>> dataList = (Iterator<Pair<byte[], byte[]>>) o;
+
+                Pair<byte[], byte[]> dataLabelPair = dataList.next();
+                NDList data = NDList.decode(distributedTrainer.getManager(), dataLabelPair.getKey());
+                NDList label = NDList.decode(distributedTrainer.getManager(), dataLabelPair.getValue());
+
+                int partitionLabel = Integer.parseInt(data.get(0).getName());
+                for (int i = 0; i < numEpoch; i++) {
+                    try(GradientCollector gradientCollector = distributedTrainer.newGradientCollector()){
+                        NDList pred = distributedTrainer.forward(data, label);
+                        NDArray loss = distributedTrainer.getLoss().evaluate(label, pred);
+                        gradientCollector.backward(loss);
+                        distributedTrainer.step();
+
+                        System.out.println("partition "+ partitionLabel + " finished epoch " + String.valueOf(i+1));
+                    }
+                }
+
+
+                List<byte[]> resultParameters = new LinkedList<>();
+                for(int i = 0 ; i < parameterList.size(); i++){
+                    if(i % partitionNum == partitionLabel){
+                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                        DataOutputStream dos = new DataOutputStream(bos);
+                        dos.write(i);
+                        parameterList.get(i).getValue().save(dos);
+                        resultParameters.add(bos.toByteArray());
+                    }
+                }
+
+                distributedModel.close();
+                distributedTrainer.close();
+                return resultParameters.iterator();
+            }}, true).collect();
 
             ParameterList parameterList = trainer.getModel().getBlock().getParameters();
             for(int i = 0; i < result.size(); i++){
@@ -145,8 +213,16 @@ public class DistributedTrain {
                 parameterList.get(number).getValue().load(trainer.getManager(), dis);
             }
         }
-    }
 
+    /**
+     * transform the datasets to RDD
+     * @param trainer the trainer of the model
+     * @param dataset dataset to be transformed
+     * @param spark current spark Context
+     * @return {@code JavaRDD} of the transformed dataset
+     * @throws IOException
+     * @throws TranslateException
+     */
     private static JavaRDD<Pair<byte[], byte[]>> parallelizeDataset(Trainer trainer, Dataset dataset, JavaSparkContext spark) throws IOException, TranslateException {
         Iterator iterator = trainer.iterateDataset(dataset).iterator();
 
@@ -163,6 +239,12 @@ public class DistributedTrain {
         return spark.parallelize(batchList);
     }
 
+    /**
+     * Encode the parameters in model
+     * @param parameterList the parameters to encode
+     * @return map of parameter
+     * @throws IOException
+     */
     private static Map<String, byte[]> encodeParameters(ParameterList parameterList) throws IOException {
         Map<String, byte[]> result = new HashMap();
 

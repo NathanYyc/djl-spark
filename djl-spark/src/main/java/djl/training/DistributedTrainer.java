@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
 
 /**
  * The {@code Trainer} interface provides a session for model training.
@@ -126,7 +127,7 @@ public class DistributedTrainer extends Trainer {
     }
 
     /** Updates all of the parameters of the model once. */
-    public void step() {
+    public void step(){
         if (!gradientsChecked) {
             checkGradients();
         }

@@ -22,6 +22,7 @@ import ai.djl.util.Preconditions;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -43,7 +44,7 @@ public final class EasyTrain {
      */
     public static void fit(
             Trainer trainer, int numEpoch, Dataset trainingDataset, Dataset validateDataset)
-            throws IOException, TranslateException {
+            throws IOException, TranslateException{
 
         // Deep learning is typically trained in epochs where each epoch trains the model on each
         // item in the dataset once

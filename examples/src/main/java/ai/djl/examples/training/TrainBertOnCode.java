@@ -37,6 +37,7 @@ import ai.djl.training.tracker.WarmUpTracker;
 import ai.djl.training.tracker.WarmUpTracker.Mode;
 import ai.djl.translate.TranslateException;
 import java.io.IOException;
+import java.util.concurrent.BrokenBarrierException;
 
 /** Simple example that performs Bert pretraining on the java source files in this repo. */
 public final class TrainBertOnCode {
@@ -46,11 +47,11 @@ public final class TrainBertOnCode {
 
     private TrainBertOnCode() {}
 
-    public static void main(String[] args) throws IOException, TranslateException {
+    public static void main(String[] args) throws IOException, TranslateException, BrokenBarrierException, InterruptedException {
         TrainBertOnCode.runExample(args);
     }
 
-    public static TrainingResult runExample(String[] args) throws IOException, TranslateException {
+    public static TrainingResult runExample(String[] args) throws IOException, TranslateException, BrokenBarrierException, InterruptedException {
         BertArguments arguments = (BertArguments) new BertArguments().parseArgs(args);
 
         BertCodeDataset dataset =

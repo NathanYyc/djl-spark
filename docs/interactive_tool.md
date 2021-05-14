@@ -72,7 +72,7 @@ No, it’s Java 11, only.
 
 Inspired by Spencer Park’s [IJava project](https://github.com/SpencerPark/IJava), we integrated DJL with Jupyter Notebooks. 
 For more information on the simple setup, follow the instructions in [DJL Jupyter notebooks](../jupyter/README.md#setup).
-After that, use the Jupyter Notebook freely in your hosted server. You can do all kinds of work, like block building and plotting a graph.
+After that, use the Jupyter Notebook freely in your hosted parameterServer. You can do all kinds of work, like block building and plotting a graph.
 There are [tutorials and instructions](../jupyter/README.md#djl---jupyter-notebooks) to guide you how you can run training and/or inference with Java.
 
 ## About Future Lab

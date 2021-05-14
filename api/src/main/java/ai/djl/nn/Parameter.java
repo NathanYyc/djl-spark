@@ -24,6 +24,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * {@code Parameter} is a container class that holds a learnable parameter of a model.
@@ -40,6 +41,8 @@ public class Parameter implements AutoCloseable {
 
     private static final byte VERSION = 1;
 
+    private static AtomicLong COUNTER = new AtomicLong(1);
+
     private String id;
     private String name;
     private Shape shape;
@@ -49,7 +52,7 @@ public class Parameter implements AutoCloseable {
     private boolean requiresGrad;
 
     Parameter(Builder builder) {
-        this.id = UUID.randomUUID().toString();
+        this.id = String.valueOf(COUNTER.getAndIncrement());
         this.name = builder.name;
         this.shape = builder.shape;
         this.type = builder.type;
@@ -111,6 +114,22 @@ public class Parameter implements AutoCloseable {
         }
         this.shape = shape;
     }
+
+    /**
+     * Sets the name of this {@code Parameter}
+     *
+     * @param name the name of this {@code Parameter}
+     */
+    public void setName(String name) {this.name = name;}
+
+
+
+    /**
+     * Sets the id of this {@code Parameter}.
+     *
+     * @param id the id of this {@code Parameter}
+     */
+    public void setId(String id) { this.id = id; }
 
     /**
      * Gets the values of this {@code Parameter} as an {@link NDArray}.

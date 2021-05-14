@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
 
 /**
  * An example of training a simple Single Shot Detection (SSD) model.
@@ -66,11 +67,11 @@ public final class TrainPikachu {
 
     private TrainPikachu() {}
 
-    public static void main(String[] args) throws IOException, TranslateException {
+    public static void main(String[] args) throws IOException, TranslateException, BrokenBarrierException, InterruptedException {
         TrainPikachu.runExample(args);
     }
 
-    public static TrainingResult runExample(String[] args) throws IOException, TranslateException {
+    public static TrainingResult runExample(String[] args) throws IOException, TranslateException, BrokenBarrierException, InterruptedException {
         Arguments arguments = new Arguments().parseArgs(args);
         if (arguments == null) {
             return null;

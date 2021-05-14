@@ -91,7 +91,8 @@ public class ZooModel<I, O> implements Model {
         model.setBlock(block);
     }
 
-    /** {@inheritDoc} */
+    /** {@inheritDoc}
+     * @return*/
     @Override
     public String getName() {
         return model.getName();

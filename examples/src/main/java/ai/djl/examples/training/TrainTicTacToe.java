@@ -37,6 +37,8 @@ import ai.djl.training.tracker.LinearTracker;
 import ai.djl.training.tracker.Tracker;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.concurrent.BrokenBarrierException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,11 +54,11 @@ public final class TrainTicTacToe {
 
     private TrainTicTacToe() {}
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, BrokenBarrierException, InterruptedException {
         TrainTicTacToe.runExample(args);
     }
 
-    public static TrainingResult runExample(String[] args) throws IOException {
+    public static TrainingResult runExample(String[] args) throws IOException, BrokenBarrierException, InterruptedException {
         Arguments arguments = new Arguments().parseArgs(args);
         if (arguments == null) {
             return null;

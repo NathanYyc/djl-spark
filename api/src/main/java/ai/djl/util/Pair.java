@@ -12,6 +12,7 @@
  */
 package ai.djl.util;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -20,8 +21,9 @@ import java.util.Objects;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class Pair<K, V> {
+public class Pair<K, V> implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private K key;
     private V value;
 

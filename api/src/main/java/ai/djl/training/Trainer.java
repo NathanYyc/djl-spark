@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -187,7 +188,7 @@ public class Trainer implements AutoCloseable {
     }
 
     /** Updates all of the parameters of the model once. */
-    public void step() {
+    public void step(){
         if (!gradientsChecked) {
             checkGradients();
         }

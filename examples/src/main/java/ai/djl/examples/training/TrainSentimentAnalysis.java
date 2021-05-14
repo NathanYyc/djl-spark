@@ -62,6 +62,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -77,13 +78,13 @@ public final class TrainSentimentAnalysis {
 
     public static void main(String[] args)
             throws IOException, ModelNotFoundException, MalformedModelException,
-                    TranslateException {
+            TranslateException, BrokenBarrierException, InterruptedException {
         TrainSentimentAnalysis.runExample(args);
     }
 
     public static TrainingResult runExample(String[] args)
             throws IOException, ModelNotFoundException, MalformedModelException,
-                    TranslateException {
+            TranslateException, BrokenBarrierException, InterruptedException {
         Arguments arguments = new Arguments().parseArgs(args);
         if (arguments == null) {
             return null;

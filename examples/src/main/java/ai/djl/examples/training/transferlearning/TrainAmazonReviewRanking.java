@@ -53,6 +53,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.BrokenBarrierException;
+
 import org.apache.commons.csv.CSVFormat;
 
 public final class TrainAmazonReviewRanking {
@@ -60,12 +62,12 @@ public final class TrainAmazonReviewRanking {
     private TrainAmazonReviewRanking() {}
 
     public static void main(String[] args)
-            throws IOException, TranslateException, ModelException, URISyntaxException {
+            throws IOException, TranslateException, ModelException, URISyntaxException, BrokenBarrierException, InterruptedException {
         TrainAmazonReviewRanking.runExample(args);
     }
 
     public static TrainingResult runExample(String[] args)
-            throws IOException, TranslateException, ModelException, URISyntaxException {
+            throws IOException, TranslateException, ModelException, URISyntaxException, BrokenBarrierException, InterruptedException {
         Arguments arguments = new Arguments().parseArgs(args);
         if (arguments == null) {
             return null;

@@ -191,7 +191,7 @@ You can also do multi-threading inference with DJL. For example, if you would li
 ```
 Best thread number for your system: The same number of cores your system have or double of the total cores.
 
-You can also add `-l` to simulate the increment load for your inference server. It will add threads with the delay of time.
+You can also add `-l` to simulate the increment load for your inference parameterServer. It will add threads with the delay of time.
 
 ```
 -t 10 -l 100

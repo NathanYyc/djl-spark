@@ -37,16 +37,17 @@ import ai.djl.training.loss.Loss;
 import ai.djl.training.util.ProgressBar;
 import ai.djl.translate.TranslateException;
 import java.io.IOException;
+import java.util.concurrent.BrokenBarrierException;
 
 public final class TrainMnistWithLSTM {
 
     private TrainMnistWithLSTM() {}
 
-    public static void main(String[] args) throws IOException, TranslateException {
+    public static void main(String[] args) throws IOException, TranslateException, BrokenBarrierException, InterruptedException {
         TrainMnistWithLSTM.runExample(args);
     }
 
-    public static TrainingResult runExample(String[] args) throws IOException, TranslateException {
+    public static TrainingResult runExample(String[] args) throws IOException, TranslateException, BrokenBarrierException, InterruptedException {
         Arguments arguments = new Arguments().parseArgs(args);
         if (arguments == null) {
             return null;

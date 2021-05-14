@@ -126,6 +126,16 @@ public class MxModel extends BaseModel {
         }
     }
 
+    /**
+     * Gets the model name.
+     *
+     * @return name of the model
+     */
+    @Override
+    public String getName() {
+        return modelName;
+    }
+
     /** {@inheritDoc} */
     @Override
     public Trainer newTrainer(TrainingConfig trainingConfig) {

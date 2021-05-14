@@ -182,7 +182,8 @@ public class FtModel implements Model {
         throw new UnsupportedOperationException("Fasttext doesn't support setting the Block.");
     }
 
-    /** {@inheritDoc} */
+    /** {@inheritDoc}
+     * @return*/
     @Override
     public String getName() {
         return modelName;

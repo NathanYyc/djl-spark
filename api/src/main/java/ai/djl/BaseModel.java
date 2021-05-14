@@ -81,12 +81,6 @@ public abstract class BaseModel implements Model {
 
     /** {@inheritDoc} */
     @Override
-    public String getName() {
-        return modelName;
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public NDManager getNDManager() {
         return manager;
     }

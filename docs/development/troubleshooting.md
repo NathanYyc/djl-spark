@@ -105,7 +105,7 @@ DJL on Windows, please download and install
 CN: 如果您在中国，可以使用 [DirectX 修复工具](https://blog.csdn.net/VBcom/article/details/6962388) 来安装遗失依赖项。
 
 If the issue continues to persist, you can use the [docker file](https://github.com/deepjavalibrary/djl/blob/master/docker/windows/Dockerfile) provided by us.
-Please note that this docker will only work with Windows server 2019 by default. If you want it to work with other
+Please note that this docker will only work with Windows parameterServer 2019 by default. If you want it to work with other
 versions of Windows, you need to pass the version as an argument as follows:
 
 ```

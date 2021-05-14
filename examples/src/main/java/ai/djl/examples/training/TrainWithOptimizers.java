@@ -51,6 +51,8 @@ import ai.djl.translate.TranslateException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.BrokenBarrierException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -63,13 +65,13 @@ public final class TrainWithOptimizers {
 
     public static void main(String[] args)
             throws IOException, ParseException, ModelNotFoundException, MalformedModelException,
-                    TranslateException {
+            TranslateException, BrokenBarrierException, InterruptedException {
         TrainWithOptimizers.runExample(args);
     }
 
     public static TrainingResult runExample(String[] args)
             throws IOException, ParseException, ModelNotFoundException, MalformedModelException,
-                    TranslateException {
+            TranslateException, BrokenBarrierException, InterruptedException {
         OptimizerArguments arguments =
                 (OptimizerArguments) new OptimizerArguments().parseArgs(args);
 

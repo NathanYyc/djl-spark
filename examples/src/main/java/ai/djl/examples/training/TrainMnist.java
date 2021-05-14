@@ -33,6 +33,7 @@ import ai.djl.training.loss.Loss;
 import ai.djl.training.util.ProgressBar;
 import ai.djl.translate.TranslateException;
 import java.io.IOException;
+import java.util.concurrent.BrokenBarrierException;
 
 /**
  * An example of training an image classification (MNIST) model.
@@ -45,11 +46,11 @@ public final class TrainMnist {
 
     private TrainMnist() {}
 
-    public static void main(String[] args) throws IOException, TranslateException {
+    public static void main(String[] args) throws IOException, TranslateException, BrokenBarrierException, InterruptedException {
         TrainMnist.runExample(args);
     }
 
-    public static TrainingResult runExample(String[] args) throws IOException, TranslateException {
+    public static TrainingResult runExample(String[] args) throws IOException, TranslateException, BrokenBarrierException, InterruptedException {
         Arguments arguments = new Arguments().parseArgs(args);
         if (arguments == null) {
             return null;
@@ -72,7 +73,7 @@ public final class TrainMnist {
             // setup training configuration
             DefaultTrainingConfig config = setupTrainingConfig(arguments);
 
-            try (Trainer trainer = model.newTrainer(config)) {
+            try (Trainer trainer = new Trainer(model, config)) {
                 trainer.setMetrics(new Metrics());
 
                 /*
